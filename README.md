@@ -6,6 +6,6 @@ Using:
 -.EntityFramework
 -LinQ
 -SQL
-
+-Base Migration
 
 Application from Jakub Kozera's Udemy course
