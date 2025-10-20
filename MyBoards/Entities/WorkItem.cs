@@ -27,7 +27,6 @@ namespace MyBoards.Entities
     public abstract class WorkItem
     {
         public int Id { get; set; }
-        //public WorkItem State { get; set; }
         public string Area { get; set; }
 
         public string IterationPath { get; set; }

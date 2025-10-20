@@ -19,6 +19,10 @@ namespace MyBoards.Entities
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<State>()
+                .Property(s => s.Value)
+                .HasMaxLength(60);
+
             modelBuilder.Entity<Epic>()
                 .Property(wi => wi.EndDate)
                 .HasPrecision(3);
@@ -85,12 +89,6 @@ namespace MyBoards.Entities
 
             //modelBuilder.Entity<WorkItemTag>()
             //    .HasKey(c => new {c.TagId, c.WorkItemId});
-
-            modelBuilder.Entity<State>(s =>
-            {
-                s.Property(x => x.Name).IsRequired()
-                .HasMaxLength(50);
-            });
 
         }
     }
