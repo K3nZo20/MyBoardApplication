@@ -56,4 +56,17 @@ if (!users.Any())
     dbContext.SaveChanges();
 }
 
+app.MapGet("data", async (MyBoardsContext db) =>
+{
+    var mostComments = await db.Users
+    .OrderByDescending(u => u.Comments.Count())
+    .Select(u => new
+    {
+        u,
+        CommentsCount = u.Comments.Count()})
+    .FirstAsync();
+
+    return mostComments;
+});
+
 app.Run();
