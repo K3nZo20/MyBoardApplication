@@ -22,6 +22,10 @@ namespace MyBoards.Entities
             modelBuilder.Entity<State>()
                 .Property(s => s.Value)
                 .HasMaxLength(60);
+            modelBuilder.Entity<State>()
+                .HasData(new State() { Id = 1, Value = "To Do" },
+                new State() { Id = 2, Value = "Doing" },
+                new State() { Id = 3, Value = "Done" });
 
             modelBuilder.Entity<Epic>()
                 .Property(wi => wi.EndDate)
@@ -53,7 +57,7 @@ namespace MyBoards.Entities
                 .HasForeignKey(w => w.AuthorId);
 
                 eb.HasOne(w => w.State)
-                .WithMany(s => s.WorkItems)   //() if don't needed
+                .WithMany()
                 .HasForeignKey(w => w.StateId);
 
                 eb.HasMany(w => w.Tags)
@@ -92,6 +96,16 @@ namespace MyBoards.Entities
                 .WithOne(a => a.User)
                 .HasForeignKey<Address>(a => a.UserId);
 
+            });
+
+            modelBuilder.Entity<Tag>(ta =>
+            {
+                ta.HasData(
+                    new Tag() { Id = 1, Value = "Web" },
+                    new Tag() { Id = 2, Value = "UI" },
+                    new Tag() { Id = 3, Value = "Desktop" },
+                    new Tag() { Id = 4, Value = "API" },
+                    new Tag() { Id = 5, Value = "Service" });
             });
                 
 
