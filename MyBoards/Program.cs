@@ -104,12 +104,13 @@ app.MapPost("create", async (MyBoardsContext db) =>
 
 app.MapDelete("delete", async (MyBoardsContext db) =>
 {
-    var workItemTags = await db.WorkItemTag.Where ( c => c.WorkItemId == 12).ToListAsync();
-    db.WorkItemTag.RemoveRange(workItemTags);
+    var user = await db.Users.FirstAsync(u => u.Id == Guid.Parse("8510CA18-CEAB-4650-CBF5-08DA10AB0E61"));
 
-    var workItem = await db.WorkItems.FirstAsync(c => c.Id == 16);
-    db.RemoveRange(workItem);
+    var userComments = db.Comments.Where(c => c.AuthorId == user.Id).ToList();
+    db.RemoveRange(userComments);
+    await db.SaveChangesAsync();
 
+    db.Users.Remove(user);
     await db.SaveChangesAsync();
 });
 
