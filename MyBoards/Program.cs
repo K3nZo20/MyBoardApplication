@@ -1,10 +1,17 @@
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using MyBoards.Entities;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+});
+
 
 builder.Services.AddDbContext<MyBoardsContext>(
         option => option.UseSqlServer(builder.Configuration.GetConnectionString("MyBoardsConnectionString"))
@@ -58,15 +65,52 @@ if (!users.Any())
 
 app.MapGet("data", async (MyBoardsContext db) =>
 {
-    var mostComments = await db.Users
-    .OrderByDescending(u => u.Comments.Count())
-    .Select(u => new
-    {
-        u,
-        CommentsCount = u.Comments.Count()})
-    .FirstAsync();
+    var user = await db.Users
+    .Include(u => u.Comments).ThenInclude(c => c.WorkItem)
+    .Include(u => u.Address)
+    .FirstAsync(u => u.Id == Guid.Parse("9A8E164A-F3C2-40C3-CBCD-08DA10AB0E61"));
 
-    return mostComments;
+    return user;
+});
+
+app.MapPost("update", async (MyBoardsContext db) =>
+{
+    var epic = await db.Epic.FirstAsync(epic => epic.Id == 1);
+
+    var rejectedState = await db.States.FirstAsync(a => a.Value == "Rejected");
+
+    epic.State = rejectedState;
+
+
+    await db.SaveChangesAsync();
+    return epic;
+
+});
+app.MapPost("create", async (MyBoardsContext db) =>
+{
+    Tag mvcTag = new Tag()
+    {
+        Value = "MVC"
+    };
+    Tag aspTag = new Tag()
+    {
+        Value = "ASP"
+    };
+
+    //await db.AddAsync(tag);
+    await db.Tags.AddRangeAsync(mvcTag, aspTag);
+    await db.SaveChangesAsync();
+});
+
+app.MapDelete("delete", async (MyBoardsContext db) =>
+{
+    var workItemTags = await db.WorkItemTag.Where ( c => c.WorkItemId == 12).ToListAsync();
+    db.WorkItemTag.RemoveRange(workItemTags);
+
+    var workItem = await db.WorkItems.FirstAsync(c => c.Id == 16);
+    db.RemoveRange(workItem);
+
+    await db.SaveChangesAsync();
 });
 
 app.Run();
