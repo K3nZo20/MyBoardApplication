@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
+using MyBoards.Dto;
 using MyBoards.Entities;
+using System.Linq.Expressions;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -64,6 +66,45 @@ if (!users.Any())
     dbContext.Users.AddRange(user1, user2);
     dbContext.SaveChanges();
 }
+
+
+app.MapGet("pagination", async (MyBoardsContext db) =>
+{
+    //user input
+    var filter = "a";
+    string sortBy = "FullName";
+    bool sortByDescending = false;
+    int pageNumber = 1;
+    int pageSize = 10;
+    //
+
+    var query = db.Users
+        .Where(u => filter == null || (u.Email.ToLower().Contains(filter.ToLower()) || u.FullName.ToLower().Contains(filter.ToLower())));
+
+    var totalCount = query.Count();
+
+    if(sortBy != null)
+    {
+        var columnSelector = new Dictionary<string, Expression<Func<User, object>>>
+        {
+            {nameof(User.Email), user => user.Email},
+            {nameof(User.FullName), user => user.FullName}
+        };
+
+        var sortByExpression = columnSelector[sortBy];
+
+        query = sortByDescending ? query.OrderByDescending(sortByExpression) : query.OrderBy(sortByExpression);
+    }
+
+    var result = query.Skip(pageSize * (pageNumber - 1))
+                .Take(pageSize)
+                .ToList();
+
+    var pagedResult = new PagedResult<User>(result, totalCount, pageSize, pageNumber);
+
+    return pagedResult;
+
+});
 
 app.MapGet("data", async (MyBoardsContext db) =>
 {
