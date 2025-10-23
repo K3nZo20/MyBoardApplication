@@ -14,7 +14,9 @@ builder.Services.Configure<JsonOptions>(options =>
 
 
 builder.Services.AddDbContext<MyBoardsContext>(
-        option => option.UseSqlServer(builder.Configuration.GetConnectionString("MyBoardsConnectionString"))
+        option => option
+        //.UseLazyLoadingProxies()
+        .UseSqlServer(builder.Configuration.GetConnectionString("MyBoardsConnectionString"))
         );
 
 var app = builder.Build();
